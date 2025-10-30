@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayWall Museum - A Gallery of Knowledge You Pay to Uncover</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            background: #000000;
+            color: #D4AF37;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+        }
+        
+        /* CRT Screen Effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            background: 
+                linear-gradient(transparent 50%, rgba(0, 255, 247, 0.03) 50%),
+                linear-gradient(90deg, transparent 50%, rgba(212, 175, 55, 0.02) 50%);
+            background-size: 100% 4px, 4px 100%;
+            animation: scanlines 0.1s linear infinite;
+        }
+        
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        
+        /* Glowing text effects */
+        .glow {
+            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+        }
+        
+        .glow-button {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            padding: 15px 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glow-button:hover {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .glow-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glow-button:hover::before {
+            left: 100%;
+        }
+        
+        /* Header Section */
+        .header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(0, 255, 247, 0.05) 0%, transparent 50%),
+                linear-gradient(45deg, #000000 0%, #0A0A0A 100%);
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><filter id="noise"><feTurbulence baseFrequency="0.9" numOctaves="1" result="noise"/><feColorMatrix in="noise" type="saturate" values="0"/><feComponentTransfer><feFuncA type="discrete" tableValues="0 0.1 0 0.05 0"/></feComponentTransfer></filter></defs><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.3"/></svg>') repeat;
+            animation: noise 2s infinite;
+            opacity: 0.1;
+        }
+        
+        @keyframes noise {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -5%); }
+            20% { transform: translate(-10%, 5%); }
+            30% { transform: translate(5%, -10%); }
+            40% { transform: translate(-5%, 15%); }
+            50% { transform: translate(-10%, 5%); }
+            60% { transform: translate(15%, 0%); }
+            70% { transform: translate(0%, 10%); }
+            80% { transform: translate(-15%, 0%); }
+            90% { transform: translate(10%, 5%); }
+        }
+        
+        .museum-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px #D4AF37, 0 0 30px #D4AF37, 0 0 40px #D4AF37; }
+            to { text-shadow: 0 0 30px #D4AF37, 0 0 40px #D4AF37, 0 0 50px #D4AF37; }
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        
+        /* Section Styling */
+        .section {
+            padding: 100px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #D4AF37;
+        }
+        
+        .section-description {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 1.1rem;
+            opacity: 0.7;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Hall of Leaks */
+        .leak-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .leak-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .leak-card:hover {
+            border-color: #D4AF37;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .leak-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(212, 175, 55, 0.05) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .leak-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #00FFF7;
+        }
+        
+        .file-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            color: #D4AF37;
+        }
+        
+        .unlock-button {
+            background: rgba(0, 255, 247, 0.1);
+            border: 1px solid #00FFF7;
+            color: #00FFF7;
+            padding: 10px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .unlock-button:hover {
+            background: rgba(0, 255, 247, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 247, 0.3);
+        }
+        
+        /* Room of Rumors */
+        .rumors-section {
+            background: 
+                linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 247, 0.03) 0%, transparent 50%);
+            position: relative;
+        }
+        
+        .rumors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 50px;
+        }
+        
+        .rumor-snippet {
+            background: rgba(10, 10, 10, 0.9);
+            border-left: 3px solid #D4AF37;
+            padding: 25px;
+            position: relative;
+            filter: blur(2px);
+            transition: all 0.3s ease;
+        }
+        
+        .rumor-snippet:hover {
+            filter: blur(1px);
+        }
+        
+        .rumor-text {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .payment-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #D4AF37;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            background: #D4AF37;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            clip-path: polygon(50% 0%, 0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%);
+        }
+        
+        /* Voice Archive */
+        .voice-section {
+            background: linear-gradient(180deg, #000000 0%, #0A0A0A 100%);
+        }
+        
+        .audio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .audio-item {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 255, 247, 0.3);
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .audio-item:hover {
+            border-color: #00FFF7;
+            box-shadow: 0 5px 20px rgba(0, 255, 247, 0.2);
+        }
+        
+        .waveform {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            height: 60px;
+            margin: 20px 0;
+            gap: 2px;
+        }
+        
+        .wave-bar {
+            width: 3px;
+            background: #00FFF7;
+            animation: wave 1.5s ease-in-out infinite;
+            opacity: 0.7;
+        }
+        
+        .wave-bar:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+        
+        .wave-bar:nth-child(even) {
+            animation-delay: 0.3s;
+        }
+        
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+        
+        /* Featured Exhibits */
+        .exhibits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+        
+        .exhibit-card {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(0, 0, 0, 0.9) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 40px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        .exhibit-card:hover {
+            border-color: #D4AF37;
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.1);
+        }
+        
+        .exhibit-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #D4AF37;
+        }
+        
+        .exhibit-description {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        /* About Section */
+        .about-section {
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 50px 0;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .timeline-item {
+            text-align: center;
+            position: relative;
+        }
+        
+        .timeline-year {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #D4AF37;
+            animation: pulse 2s infinite;
+        }
+        
+        .timeline-label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Footer */
+        .footer {
+            background: #000000;
+            padding: 50px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #D4AF37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .social-icon:hover {
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-toggle:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        /* Access Console */
+        .access-console {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00FFF7;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: #00FFF7;
+            z-index: 100;
+            animation: consoleBlink 2s infinite;
+        }
+        
+        @keyframes consoleBlink {
+            0%, 90% { opacity: 1; }
+            95% { opacity: 0.5; }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .museum-title {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 60px 15px;
+            }
+            
+            .timeline {
+                gap: 20px;
+            }
+            
+            .timeline-year {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="crt-overlay"></div><!-- Sound Toggle -->
+  <div class="sound-toggle" onclick="toggleSound()"><span id="sound-status">🔊 AMBIENT ON</span>
+  </div><!-- Access Console -->
+  <div class="access-console">
+   HTTP/1.1 402 Payment Required — x402 Active
+  </div><!-- Header Section -->
+  <header class="header">
+   <h1 class="museum-title glow" id="museum-title">PayWall Museum</h1>
+   <p class="tagline" id="tagline">A Gallery of Knowledge You Pay to Uncover</p><button class="glow-button" onclick="scrollToSection('hall')" id="enter-button"> Enter the Archive </button>
+  </header><!-- Hall of Leaks -->
+  <section class="section" id="hall">
+   <h2 class="section-title" id="hall-title">Hall of Leaks</h2>
+   <p class="section-description">Explore digital relics of the web's untold stories — leaked memos, lost screenshots, and fragments of forbidden knowledge.</p>
+   <div class="leak-cards">
+    <div class="leak-card">
+     <div class="file-icon">
+      📁
+     </div>
+     <div class="file-name">
+      Project_Echo_1998.log
+     </div><button class="unlock-button" onclick="showPaymentRequired()">Unlock via x402</button>
+    </div>
+    <div class="leak-card">
+     <div class="file-icon">
+      🖼️
+     </div>
+     <div class="file-name">
+      deleted_thread_402.jpg
+     </div><button class="unlock-button" onclick="showPaymentRequired()">Unlock via x402</button>
+    </div>
+    <div class="leak-card">
+     <div class="file-icon">
+      📄
+     </div>
+     <div class="file-name">
+      classified_memo_99.txt
+     </div><button class="unlock-button" onclick="showPaymentRequired()">Unlock via x402</button>
+    </div>
+    <div class="leak-card">
+     <div class="file-icon">
+      💾
+     </div>
+     <div class="file-name">
+      backup_server_logs.dat
+     </div><button class="unlock-button" onclick="showPaymentRequired()">Unlock via x402</button>
+    </div>
+   </div>
+  </section><!-- Room of Rumors -->
+  <section class="section rumors-section" id="rumors">
+   <h2 class="section-title" id="room-title">The Room of Rumors</h2>
+   <p class="section-description">Every rumor holds a grain of truth. Pay to read, if you dare.</p>
+   <div class="rumors-grid">
+    <div class="rumor-snippet">
+     <div class="rumor-text">
+      The servers went dark at 3:47 AM. Nobody talks about what happened that night, but the logs show something impossible...
+     </div>
+     <div class="payment-overlay">
+      <div class="payment-icon">
+       402
+      </div>
+      <div>
+       Payment Required
+      </div>
+     </div>
+    </div>
+    <div class="rumor-snippet">
+     <div class="rumor-text">
+      @user_unknown posted the coordinates before disappearing. The thread was deleted within minutes, but some say copies still exist...
+     </div>
+     <div class="payment-overlay">
+      <div class="payment-icon">
+       402
+      </div>
+      <div>
+       Payment Required
+      </div>
+     </div>
+    </div>
+    <div class="rumor-snippet">
+     <div class="rumor-text">
+      The GIF that crashed every browser in 1999. They said it was just corrupted data, but the pattern was too perfect to be random...
+     </div>
+     <div class="payment-overlay">
+      <div class="payment-icon">
+       402
+      </div>
+      <div>
+       Payment Required
+      </div>
+     </div>
+    </div>
+   </div>
+  </section><!-- Voice Archive -->
+  <section class="section voice-section" id="voice">
+   <h2 class="section-title" id="voice-title">The Voice of the Archive</h2>
+   <p class="section-description">Whispers from lost servers and forgotten frequencies.</p>
+   <div class="audio-grid">
+    <div class="audio-item">
+     <h3>Server Room Echo</h3>
+     <div class="waveform">
+      <div class="wave-bar" style="height: 20px;"></div>
+      <div class="wave-bar" style="height: 35px;"></div>
+      <div class="wave-bar" style="height: 15px;"></div>
+      <div class="wave-bar" style="height: 40px;"></div>
+      <div class="wave-bar" style="height: 25px;"></div>
+      <div class="wave-bar" style="height: 30px;"></div>
+      <div class="wave-bar" style="height: 45px;"></div>
+      <div class="wave-bar" style="height: 20px;"></div>
+     </div><button class="unlock-button" onclick="showPaymentRequired()">402 Payment Required</button>
+    </div>
+    <div class="audio-item">
+     <h3>Dial-up Memories</h3>
+     <div class="waveform">
+      <div class="wave-bar" style="height: 30px;"></div>
+      <div class="wave-bar" style="height: 25px;"></div>
+      <div class="wave-bar" style="height: 40px;"></div>
+      <div class="wave-bar" style="height: 35px;"></div>
+      <div class="wave-bar" style="height: 20px;"></div>
+      <div class="wave-bar" style="height: 45px;"></div>
+      <div class="wave-bar" style="height: 30px;"></div>
+      <div class="wave-bar" style="height: 25px;"></div>
+     </div><button class="unlock-button" onclick="showPaymentRequired()">402 Payment Required</button>
+    </div>
+    <div class="audio-item">
+     <h3>The Last Transmission</h3>
+     <div class="waveform">
+      <div class="wave-bar" style="height: 15px;"></div>
+      <div class="wave-bar" style="height: 40px;"></div>
+      <div class="wave-bar" style="height: 30px;"></div>
+      <div class="wave-bar" style="height: 25px;"></div>
+      <div class="wave-bar" style="height: 35px;"></div>
+      <div class="wave-bar" style="height: 20px;"></div>
+      <div class="wave-bar" style="height: 45px;"></div>
+      <div class="wave-bar" style="height: 30px;"></div>
+     </div><button class="unlock-button" onclick="showPaymentRequired()">402 Payment Required</button>
+    </div>
+   </div>
+  </section><!-- Featured Exhibits -->
+  <section class="section" id="exhibits">
+   <h2 class="section-title" id="exhibits-title">Featured Exhibits</h2>
+   <div class="exhibits-grid">
+    <div class="exhibit-card">
+     <h3 class="exhibit-title">The GIF that Crashed Geocities</h3>
+     <p class="exhibit-description">A 47-byte animation that brought down an entire hosting platform. The mathematical impossibility that shouldn't exist.</p><button class="unlock-button" onclick="showPaymentRequired()">Unlock File</button>
+    </div>
+    <div class="exhibit-card">
+     <h3 class="exhibit-title">The Forbidden Forum Post</h3>
+     <p class="exhibit-description">Posted at 11:59 PM on December 31st, 1999. Deleted before Y2K struck. Some say it predicted the future of the internet.</p><button class="unlock-button" onclick="showPaymentRequired()">Unlock File</button>
+    </div>
+    <div class="exhibit-card">
+     <h3 class="exhibit-title">The Meme Before Memes</h3>
+     <p class="exhibit-description">The first viral image, spread through bulletin boards in 1987. It contained a message that wouldn't be understood for decades.</p><button class="unlock-button" onclick="showPaymentRequired()">Unlock File</button>
+    </div>
+   </div>
+  </section><!-- About Section -->
+  <section class="section about-section" id="about">
+   <h2 class="section-title" id="about-title">What is PayWall Museum?</h2>
+   <p class="section-description">An experimental digital museum exploring the lost spaces of the Internet — where access itself becomes an artifact. Every file is protected by the x402 protocol, requiring micro-payments to reveal its truth.</p>
+   <div class="timeline">
+    <div class="timeline-item">
+     <div class="timeline-year">
+      1990
+     </div>
+     <div class="timeline-label">
+      The Beginning
+     </div>
+    </div>
+    <div class="timeline-item">
+     <div class="timeline-year">
+      404
+     </div>
+     <div class="timeline-label">
+      Not Found
+     </div>
+    </div>
+    <div class="timeline-item">
+     <div class="timeline-year">
+      402
+     </div>
+     <div class="timeline-label">
+      Payment Required
+     </div>
+    </div>
+    <div class="timeline-item">
+     <div class="timeline-year">
+      2040
+     </div>
+     <div class="timeline-label">
+      The Archive
+     </div>
+    </div>
+    <div class="timeline-item">
+     <div class="timeline-year">
+      ∞
+     </div>
+     <div class="timeline-label">
+      Forever
+     </div>
+    </div>
+   </div>
+  </section><!-- Footer -->
+  <footer class="footer">
+   <p id="footer-text">PayWall Museum © 2042 – Every truth has its price.</p>
+   <div class="social-icons">
+    <div class="social-icon" onclick="openSocial('x')">
+     𝕏
+    </div>
+    <div class="social-icon" onclick="openSocial('lens')">
+     🌿
+    </div>
+    <div class="social-icon" onclick="openSocial('farcaster')">
+     🎭
+    </div>
+   </div>
+  </footer>
+  <script>
+        // Configuration object
+        const defaultConfig = {
+            museum_title: "PayWall Museum",
+            tagline: "A Gallery of Knowledge You Pay to Uncover",
+            enter_button_text: "Enter the Archive",
+            hall_title: "Hall of Leaks",
+            room_title: "The Room of Rumors",
+            voice_title: "The Voice of the Archive",
+            exhibits_title: "Featured Exhibits",
+            about_title: "What is PayWall Museum?",
+            footer_text: "PayWall Museum © 2042 – Every truth has its price."
+        };
+        
+        // Sound state
+        let soundEnabled = true;
+        
+        // Scroll animations
+        function observeElements() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+        }
+        
+        // Smooth scrolling
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        // Payment required notification
+        function showPaymentRequired() {
+            // Create a custom modal instead of alert
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                font-family: 'JetBrains Mono', monospace;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: #000;
+                    border: 2px solid #D4AF37;
+                    padding: 40px;
+                    text-align: center;
+                    color: #D4AF37;
+                    max-width: 400px;
+                    box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+                ">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                    <h3 style="margin-bottom: 20px; color: #00FFF7;">HTTP/1.1 402 Payment Required</h3>
+                    <p style="margin-bottom: 30px; opacity: 0.8;">
+                        This content is protected by the x402 protocol. 
+                        Micro-payment required to access this digital artifact.
+                    </p>
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        background: rgba(212, 175, 55, 0.1);
+                        border: 1px solid #D4AF37;
+                        color: #D4AF37;
+                        padding: 10px 20px;
+                        cursor: pointer;
+                        font-family: 'JetBrains Mono', monospace;
+                    ">Close Archive</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Sound toggle
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const status = document.getElementById('sound-status');
+            status.textContent = soundEnabled ? '🔊 AMBIENT ON' : '🔇 AMBIENT OFF';
+        }
+        
+        // Social media links
+        function openSocial(platform) {
+            const urls = {
+                x: 'https://x.com',
+                lens: 'https://lens.xyz',
+                farcaster: 'https://farcaster.xyz'
+            };
+            if (urls[platform]) {
+                window.open(urls[platform], '_blank', 'noopener,noreferrer');
+            }
+        }
+        
+        // Element SDK integration
+        async function onConfigChange(config) {
+            // Update text content based on config
+            const elements = {
+                'museum-title': config.museum_title || defaultConfig.museum_title,
+                'tagline': config.tagline || defaultConfig.tagline,
+                'enter-button': config.enter_button_text || defaultConfig.enter_button_text,
+                'hall-title': config.hall_title || defaultConfig.hall_title,
+                'room-title': config.room_title || defaultConfig.room_title,
+                'voice-title': config.voice_title || defaultConfig.voice_title,
+                'exhibits-title': config.exhibits_title || defaultConfig.exhibits_title,
+                'about-title': config.about_title || defaultConfig.about_title,
+                'footer-text': config.footer_text || defaultConfig.footer_text
+            };
+            
+            Object.entries(elements).forEach(([id, text]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = text;
+                }
+            });
+        }
+        
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+        
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ['museum_title', config.museum_title || defaultConfig.museum_title],
+                ['tagline', config.tagline || defaultConfig.tagline],
+                ['enter_button_text', config.enter_button_text || defaultConfig.enter_button_text],
+                ['hall_title', config.hall_title || defaultConfig.hall_title],
+                ['room_title', config.room_title || defaultConfig.room_title],
+                ['voice_title', config.voice_title || defaultConfig.voice_title],
+                ['exhibits_title', config.exhibits_title || defaultConfig.exhibits_title],
+                ['about_title', config.about_title || defaultConfig.about_title],
+                ['footer_text', config.footer_text || defaultConfig.footer_text]
+            ]);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            observeElements();
+            
+            // Initialize Element SDK if available
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities,
+                    mapToEditPanelValues
+                });
+            }
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'996b3f08e260c23e',t:'MTc2MTgzMDgwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
